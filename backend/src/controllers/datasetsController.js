@@ -40,6 +40,32 @@ const getAllDatasets = async (req, res) => {
     return res.status(500).json({ error: 'Failed to load datasets' });
   }
 };
+/**
+ * POST /api/datasets/:id/restore
+ * Restores a soft-deleted dataset within its 15-day recovery period.
+ */
+const restoreDataset = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!/^\d+$/.test(id) || Number(id) < 1) {
+      return res.status(400).json({
+        error: "Dataset ID must be a positive integer",
+      });
+    }
+
+    const dataset = await datasetService.restoreDataset(id, req.user);
+
+    return res.status(200).json({
+      data: dataset,
+      meta: {
+        requestId: requestId(req),
+      },
+    });
+  } catch (error) {
+    return datasetError(res, req, error);
+  }
+};
 
 /**
  * GET /api/datasets/:id
@@ -95,4 +121,5 @@ module.exports = {
   getDatasetById,
   createDataset,
   updateDataset,
+  restoreDataset,
 };
